@@ -60,6 +60,14 @@ func (ops *awsOperations) SSLInfo(appName string) (*service.SSLInfo, error) {
 	return info, nil
 }
 
+func (ops *awsOperations) CreateOrUpdateStaticIP(appName, staticIPName string) error {
+	return ErrNotImplemented
+}
+
+func (ops *awsOperations) StaticIPInfo(appName string) (*service.SSLInfo, error) {
+	return nil, ErrNotImplemented
+}
+
 func (ops *awsOperations) Name() string {
 	return "aws"
 }

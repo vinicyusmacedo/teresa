@@ -60,6 +60,9 @@ The app name must follow this rules:
   With multiple virtual hosts
   $ teresa create foo --team bar --vhost foo1.teresa.io,foo2.teresa.io
 
+  An app with static IP (GCP only)
+  $ teresa create foo --team bar --reserve-static-ip
+
   An internal app (without external endpoint)
   $ teresa create foo --team bar --internal
 
@@ -137,6 +140,11 @@ func createApp(cmd *cobra.Command, args []string) {
 		client.PrintErrorAndExit("Invalid internal parameter")
 	}
 
+	reserveStaticIP, err := cmd.Flags().GetBool("reserve-static-ip")
+	if err != nil {
+		client.PrintErrorAndExit("Invalid reserve-static-ip parameter")
+	}
+
 	protocol, err := cmd.Flags().GetString("protocol")
 	if err != nil {
 		client.PrintErrorAndExit("Invalid protocol parameter")
@@ -162,14 +170,15 @@ func createApp(cmd *cobra.Command, args []string) {
 	_, err = cli.Create(
 		context.Background(),
 		&appb.CreateRequest{
-			Name:        name,
-			Team:        team,
-			ProcessType: processType,
-			VirtualHost: vHost,
-			Limits:      lim,
-			Autoscale:   as,
-			Internal:    internal,
-			Protocol:    protocol,
+			Name:            name,
+			Team:            team,
+			ProcessType:     processType,
+			VirtualHost:     vHost,
+			Limits:          lim,
+			Autoscale:       as,
+			Internal:        internal,
+			ReserveStaticIP: reserveStaticIP,
+			Protocol:        protocol,
 		},
 	)
 	if err != nil {
@@ -917,6 +926,7 @@ func init() {
 	appCmd.AddCommand(appDeletePodsCmd)
 	appCmd.AddCommand(appChangeTeamCmd)
 	appCmd.AddCommand(appSetVHostsCmd)
+	appCmd.AddCommand(appSetStaticIPCmd)
 
 	appCreateCmd.Flags().String("team", "", "team owner of the app")
 	appCreateCmd.Flags().Int32("scale-min", 1, "minimum number of replicas")
@@ -928,6 +938,7 @@ func init() {
 	appCreateCmd.Flags().String("max-memory", "512Mi", "when set, allows the pod to burst memory usage up to 'max-memory'")
 	appCreateCmd.Flags().String("process-type", "", "app process type")
 	appCreateCmd.Flags().String("vhost", "", "comma separated list of the app's virtual hosts")
+	appCreateCmd.Flags().Bool("reserve-static-ip", false, "create an app with static IP (GCP only)")
 	appCreateCmd.Flags().Bool("internal", false, "create an internal app (without external endpoint)")
 	appCreateCmd.Flags().String("protocol", "", "app protocol: http, http2, grpc, etc.")
 
@@ -1133,6 +1144,34 @@ func appSetVHosts(cmd *cobra.Command, args []string) {
 		client.PrintErrorAndExit(client.GetErrorMsg(err))
 	}
 	fmt.Println("Virtual hosts updated with success")
+}
+
+var appSetStaticIPCmd = &cobra.Command{
+	Use:   "set-static-ip <name> address-name",
+	Short: "Set static ip for the app (GCP only)",
+	Long: `Set a static ip for the app on GCP clusters with ingress integration.
+
+  $ teresa app set-static-ip myapp myapp-ingress-address`,
+	Run: appSetStaticIP,
+}
+
+func appSetStaticIP(cmd *cobra.Command, args []string) {
+	if len(args) < 2 {
+		cmd.Usage()
+		return
+	}
+	appName, addressName := args[0], args[1:]
+	conn, err := connection.New(cfgFile, cfgCluster)
+	if err != nil {
+		client.PrintConnectionErrorAndExit(err)
+	}
+	defer conn.Close()
+	req := &appb.SetStaticIPRequest{AppName: appName, AddressName: addressName}
+	cli := appb.NewAppClient(conn)
+	if _, err := cli.SetStaticIP(context.Background(), req); err != nil {
+		client.PrintErrorAndExit(client.GetErrorMsg(err))
+	}
+	fmt.Println("Static IP updated with success")
 }
 
 // Shamelessly copied from Kubernetes

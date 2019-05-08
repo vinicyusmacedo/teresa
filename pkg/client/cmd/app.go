@@ -140,7 +140,7 @@ func createApp(cmd *cobra.Command, args []string) {
 		client.PrintErrorAndExit("Invalid internal parameter")
 	}
 
-	reserveStaticIP, err := cmd.Flags().GetBool("reserve-static-ip")
+	reserveStaticIp, err := cmd.Flags().GetBool("reserve-static-ip")
 	if err != nil {
 		client.PrintErrorAndExit("Invalid reserve-static-ip parameter")
 	}
@@ -177,7 +177,7 @@ func createApp(cmd *cobra.Command, args []string) {
 			Limits:          lim,
 			Autoscale:       as,
 			Internal:        internal,
-			ReserveStaticIP: reserveStaticIP,
+			ReserveStaticIp: reserveStaticIp,
 			Protocol:        protocol,
 		},
 	)

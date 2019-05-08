@@ -926,7 +926,7 @@ func init() {
 	appCmd.AddCommand(appDeletePodsCmd)
 	appCmd.AddCommand(appChangeTeamCmd)
 	appCmd.AddCommand(appSetVHostsCmd)
-	appCmd.AddCommand(appSetStaticIPCmd)
+	appCmd.AddCommand(appSetStaticIpCmd)
 
 	appCreateCmd.Flags().String("team", "", "team owner of the app")
 	appCreateCmd.Flags().Int32("scale-min", 1, "minimum number of replicas")
@@ -1146,16 +1146,16 @@ func appSetVHosts(cmd *cobra.Command, args []string) {
 	fmt.Println("Virtual hosts updated with success")
 }
 
-var appSetStaticIPCmd = &cobra.Command{
+var appSetStaticIpCmd = &cobra.Command{
 	Use:   "set-static-ip <name> address-name",
 	Short: "Set static ip for the app (GCP only)",
 	Long: `Set a static ip for the app on GCP clusters with ingress integration.
 
   $ teresa app set-static-ip myapp myapp-ingress-address`,
-	Run: appSetStaticIP,
+	Run: appSetStaticIp,
 }
 
-func appSetStaticIP(cmd *cobra.Command, args []string) {
+func appSetStaticIp(cmd *cobra.Command, args []string) {
 	if len(args) < 2 {
 		cmd.Usage()
 		return
@@ -1166,9 +1166,9 @@ func appSetStaticIP(cmd *cobra.Command, args []string) {
 		client.PrintConnectionErrorAndExit(err)
 	}
 	defer conn.Close()
-	req := &appb.SetStaticIPRequest{AppName: appName, AddressName: addressName}
+	req := &appb.SetStaticIpRequest{AppName: appName, AddressName: addressName}
 	cli := appb.NewAppClient(conn)
-	if _, err := cli.SetStaticIP(context.Background(), req); err != nil {
+	if _, err := cli.SetStaticIp(context.Background(), req); err != nil {
 		client.PrintErrorAndExit(client.GetErrorMsg(err))
 	}
 	fmt.Println("Static IP updated with success")

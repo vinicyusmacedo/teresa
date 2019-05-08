@@ -17,7 +17,7 @@ service App {
     rpc UnsetSecret(UnsetEnvRequest) returns (Empty);
     rpc ChangeTeam(ChangeTeamRequest) returns (Empty);
     rpc SetVHosts(SetVHostsRequest) returns (Empty);
-    rpc SetStaticIP(SetStaticIPRequest) returns (Empty);
+    rpc SetStaticIp(SetStaticIpRequest) returns (Empty);
 }
 
 message CreateRequest {

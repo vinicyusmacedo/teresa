@@ -16,6 +16,7 @@ const (
 type CloudProviderOperations interface {
 	CreateOrUpdateSSL(appName, cert string, port int) error
 	SSLInfo(appName string) (*SSLInfo, error)
+	CreateOrUpdateStaticIP(appName, staticIPName string) error
 }
 
 type K8sOperations interface {
@@ -34,6 +35,7 @@ type AppOperations interface {
 
 type Operations interface {
 	EnableSSL(user *database.User, appName, cert string, only bool) error
+	SetStaticIp(user *database.User, appName, addressName string) error
 	Info(user *database.User, appName string) (*Info, error)
 	WhitelistSourceRanges(user *database.User, appName string, sourceRanges []string) error
 }
@@ -66,6 +68,14 @@ func (ops *ServiceOperations) EnableSSL(user *database.User, appName, cert strin
 		return teresa_errors.NewInternalServerError(err)
 	}
 	return nil
+}
+
+func (ops *ServiceOperations) SetStaticIp(user *database.User, appName, addressName string) error {
+	_, err := ops.aops.CheckPermAndGet(user, appName)
+	if err != nil {
+		return err
+	}
+	return ops.cops.CreateOrUpdateStaticIP(appName, addressName)
 }
 
 func (ops *ServiceOperations) Info(user *database.User, appName string) (*Info, error) {

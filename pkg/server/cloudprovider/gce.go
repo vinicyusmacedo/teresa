@@ -65,9 +65,9 @@ func (ops *gceOperations) CreateOrUpdateStaticIP(appName, staticIPName string) e
 	if err := ops.k8s.SetServiceAnnotations(appName, appName, anMap); err != nil {
 		return teresa_errors.NewInternalServerError(err)
 	}
-	if err := reserveIP("dummy_project", staticIPName); err != nil {
+	/*if err := reserveIP("dummy_project", staticIPName); err != nil {
 		return teresa_errors.NewInternalServerError(err)
-	}
+	}*/
 	return nil
 }
 

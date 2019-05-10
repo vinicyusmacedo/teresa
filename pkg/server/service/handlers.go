@@ -30,6 +30,14 @@ func (svc *Service) Info(ctx context.Context, req *svcpb.InfoRequest) (*svcpb.In
 	return newInfoResponse(info), nil
 }
 
+func (svc *Service) SetStaticIp(ctx context.Context, req *svcpb.SetStaticIpRequest) (*svcpb.Empty, error) {
+	user := ctx.Value("user").(*database.User)
+	if err := svc.ops.SetStaticIp(user, req.AppName, req.AddressName); err != nil {
+		return nil, err
+	}
+	return &svcpb.Empty{}, nil
+}
+
 func (svc *Service) WhitelistSourceRanges(ctx context.Context, req *svcpb.WhitelistSourceRangesRequest) (*svcpb.Empty, error) {
 	user := ctx.Value("user").(*database.User)
 	if err := svc.ops.WhitelistSourceRanges(user, req.AppName, req.SourceRanges); err != nil {

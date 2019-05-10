@@ -17,7 +17,6 @@ service App {
     rpc UnsetSecret(UnsetEnvRequest) returns (Empty);
     rpc ChangeTeam(ChangeTeamRequest) returns (Empty);
     rpc SetVHosts(SetVHostsRequest) returns (Empty);
-    rpc SetStaticIp(SetStaticIpRequest) returns (Empty);
 }
 
 message CreateRequest {
@@ -45,8 +44,7 @@ message CreateRequest {
 
     string virtual_host = 6;
     bool internal = 7;
-    bool reserve_static_ip = 8;
-    string protocol = 9;
+    string protocol = 8;
 }
 
 message ListResponse {
@@ -186,11 +184,6 @@ message ChangeTeamRequest {
 message SetVHostsRequest {
    string app_name = 1;
    repeated string vhosts = 2;
-}
-
-message SetStaticIpRequest {
-   string app_name = 1;
-   repeated string address_name = 2;
 }
 
 message Empty {}

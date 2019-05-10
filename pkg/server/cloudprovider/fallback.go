@@ -12,6 +12,10 @@ func (*fallbackOperations) CreateOrUpdateSSL(appName, cert string, port int) err
 	return ErrNotImplemented
 }
 
+func (*fallbackOperations) CreateOrUpdateStaticIP(appName, staticIPName string) error {
+	return ErrNotImplemented
+}
+
 func (*fallbackOperations) Name() string {
 	return "fallback"
 }

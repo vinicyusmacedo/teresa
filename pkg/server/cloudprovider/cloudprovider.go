@@ -8,6 +8,7 @@ type Operations interface {
 	CreateOrUpdateSSL(appName, cert string, port int) error
 	SSLInfo(appName string) (*service.SSLInfo, error)
 	Name() string
+	CreateOrUpdateStaticIP(appName, staticIPName string) error
 }
 
 type K8sOperations interface {

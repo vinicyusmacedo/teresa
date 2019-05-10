@@ -52,9 +52,7 @@ func (m *BuildRequest) String() string            { return proto.CompactTextStri
 func (*BuildRequest) ProtoMessage()               {}
 func (*BuildRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-type isBuildRequest_Value interface {
-	isBuildRequest_Value()
-}
+type isBuildRequest_Value interface{ isBuildRequest_Value() }
 
 type BuildRequest_Info_ struct {
 	Info *BuildRequest_Info `protobuf:"bytes,1,opt,name=info,oneof"`

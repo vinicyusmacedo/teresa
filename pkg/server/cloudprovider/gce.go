@@ -62,6 +62,22 @@ func (ops *gceOperations) SSLInfo(appName string) (*service.SSLInfo, error) {
 	return info, nil
 }
 
+func reserveIP(project string, name string) error {
+	ctx := context.Background()
+
+	c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	svc, err := compute.New(c)
+	addr := &compute.Address{
+		Name: name,
+	}
+	_, err = svc.GlobalAddresses.Insert(project, addr).Context(ctx).Do()
+	return err
+}
+
 func (ops *gceOperations) Name() string {
 	return "gce"
 }

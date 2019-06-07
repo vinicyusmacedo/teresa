@@ -813,6 +813,12 @@
 			"revisionTime": "2016-07-21T22:28:28Z"
 		},
 		{
+			"checksumSHA1": "xB5Uihsi6T122dX/fr+K4nR9qQM=",
+			"path": "google.golang.org/api/compute/v1",
+			"revision": "5213b809086156e6e2b262a41394993fcff97439",
+			"revisionTime": "2019-06-07T00:11:16Z"
+		},
+		{
 			"checksumSHA1": "61oRC/n7DFqHNu6Z+4fAKY1FVCY=",
 			"path": "google.golang.org/genproto/googleapis/rpc/status",
 			"revision": "411e09b969b1170a9f0c467558eb4c4c110d9c77",

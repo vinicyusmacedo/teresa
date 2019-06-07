@@ -1,8 +1,14 @@
 package cloudprovider
 
 import (
+	"context"
+	"log"
+
+	"cloud.google.com/go/compute/metadata"
 	"github.com/luizalabs/teresa/pkg/server/service"
 	"github.com/luizalabs/teresa/pkg/server/teresa_errors"
+	"golang.org/x/oauth2/google"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
@@ -62,7 +68,11 @@ func (ops *gceOperations) SSLInfo(appName string) (*service.SSLInfo, error) {
 	return info, nil
 }
 
-func reserveIP(project string, name string) error {
+func reserveIP(name string) error {
+	project, err := metadata.ProjectID()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 
 	c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)

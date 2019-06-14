@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"io/ioutil"
 	"testing"
 
 	"github.com/luizalabs/teresa/pkg/server/app"
@@ -356,5 +357,112 @@ func TestClientCreateNamespace(t *testing.T) {
 	an := ns.Annotations[app.TeresaLastUser]
 	if an != "test" {
 		t.Errorf("got %s; want test", an)
+	}
+}
+
+func TestExposeDeploy(t *testing.T) {
+	cli := &Client{testing: true}
+	var testCases = []struct {
+		appName         string
+		svcType         string
+		vHosts          []string
+		reserveStaticIp bool
+	}{
+		{
+			appName:         "teresa",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"a"},
+			reserveStaticIp: false,
+		}, {
+			appName:         "teresa",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"a"},
+			reserveStaticIp: true,
+		}, {
+			appName:         "teresa",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"foobar.luizalabs.com"},
+			reserveStaticIp: true,
+		}, {
+			appName:         "teresa",
+			svcType:         "NodePort",
+			vHosts:          []string{"a"},
+			reserveStaticIp: true,
+		}, {
+			appName:         "teresa",
+			svcType:         "NodePort",
+			vHosts:          []string{"foobar.luizalabs.com"},
+			reserveStaticIp: false,
+		}, {
+			appName:         "teresa",
+			svcType:         "NodePort",
+			vHosts:          []string{"a"},
+			reserveStaticIp: false,
+		},
+	}
+	for _, tc := range testCases {
+		a := &app.App{
+			Name:            tc.appName,
+			ReserveStaticIp: tc.reserveStaticIp,
+		}
+		if len(tc.vHosts) > 0 {
+			a.VirtualHost = tc.vHosts[0]
+		}
+		if err := cli.CreateNamespace(a, tc.appName); err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+		if err := cli.ExposeDeploy(
+			tc.appName, tc.appName, tc.svcType, tc.appName, tc.vHosts,
+			tc.reserveStaticIp, ioutil.Discard,
+		); err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+
+		ingIface := cli.fake.ExtensionsV1beta1().Ingresses(tc.appName)
+		if ingIface == nil && tc.svcType == "NodePort" {
+			t.Errorf("got %v; want ingress", ingIface)
+		}
+
+		if ingIface != nil && tc.svcType != "NodePort" {
+			t.Errorf("got %v; want %v", ingIface, nil)
+		}
+		svcIface := cli.fake.CoreV1().Services(tc.appName)
+		if svcIface == nil {
+			t.Errorf("got %v; want service", svcIface)
+		}
+		svc, err := svcIface.Get(tc.appName, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+		if string(svc.Spec.Type) != tc.svcType {
+			t.Errorf("got %v; want %v", svc.Spec.Type, tc.svcType)
+		}
+
+		if tc.svcType == "NodePort" {
+			ing, err := ingIface.Get(tc.appName, metav1.GetOptions{})
+			if err != nil {
+				t.Fatal("got unexpected error:", err)
+			}
+			if tc.reserveStaticIp {
+				if ing.Spec.Rules != nil {
+					t.Errorf("got %v; want %v", ing.Spec.Rules, nil)
+				}
+				if ing.Spec.Backend == nil {
+					t.Errorf("got %v; want backend", ing.Spec.Backend)
+				}
+			} else if len(tc.vHosts) > 0 {
+				if tc.vHosts[0] == "" {
+					t.Errorf("got %v; want %v", ing, nil)
+				}
+				if ing.Spec.Rules == nil {
+					t.Errorf("got %v; want rules", ing.Spec.Rules)
+				}
+				if ing.Spec.Backend != nil {
+					t.Errorf("got %v; want %v", ing.Spec.Backend, nil)
+				}
+			} else {
+				t.Errorf("got %v; want %v", ing, nil)
+			}
+		}
 	}
 }

@@ -380,9 +380,13 @@ func (k *Client) Autoscale(namespace string) (*app.Autoscale, error) {
 		return nil, err
 	}
 
-	hpa, err := kc.AutoscalingV1().
-		HorizontalPodAutoscalers(namespace).
-		Get(namespace, metav1.GetOptions{})
+	hpaIface := kc.AutoscalingV1().HorizontalPodAutoscalers(namespace)
+
+	if hpaIface == nil {
+		return nil, nil
+	}
+
+	hpa, err := hpaIface.Get(namespace, metav1.GetOptions{})
 
 	if err != nil {
 		if k.IsNotFound(err) {

@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/luizalabs/teresa/pkg/server/app"
@@ -356,5 +358,156 @@ func TestClientCreateNamespace(t *testing.T) {
 	an := ns.Annotations[app.TeresaLastUser]
 	if an != "test" {
 		t.Errorf("got %s; want test", an)
+	}
+}
+
+func TestExposeDeploy(t *testing.T) {
+	cli := &Client{
+		testing: true,
+		ingress: true,
+	}
+	var testCases = []struct {
+		appName         string
+		svcType         string
+		vHosts          []string
+		reserveStaticIp bool
+		expectedIngress bool
+	}{
+		{
+			appName:         "teresa-lb-nostaticip",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"a"},
+			reserveStaticIp: false,
+			expectedIngress: false,
+		}, {
+			appName:         "teresa-lb-staticip",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"a"},
+			reserveStaticIp: true,
+			expectedIngress: false,
+		}, {
+			appName:         "teresa-lb-vhost-staticip",
+			svcType:         "LoadBalancer",
+			vHosts:          []string{"foobar.luizalabs.com"},
+			reserveStaticIp: true,
+			expectedIngress: false,
+		}, {
+			appName:         "teresa-nodeport-vhost-staticip",
+			svcType:         "NodePort",
+			vHosts:          []string{"foobar.luizalabs.com"},
+			reserveStaticIp: true,
+			expectedIngress: true,
+		}, {
+			appName:         "teresa-nodeport-vhost-nostaticip",
+			svcType:         "NodePort",
+			vHosts:          []string{"foobar.luizalabs.com"},
+			reserveStaticIp: false,
+			expectedIngress: true,
+		}, {
+			appName:         "teresa-nodeport-novhost-nostaticip",
+			svcType:         "NodePort",
+			vHosts:          []string{},
+			reserveStaticIp: false,
+			expectedIngress: false,
+		},
+	}
+	for _, tc := range testCases {
+		a := &app.App{
+			Name:            tc.appName,
+			ReserveStaticIp: tc.reserveStaticIp,
+		}
+		if len(tc.vHosts) > 0 {
+			a.VirtualHost = tc.vHosts[0]
+		}
+		if err := cli.CreateNamespace(a, tc.appName); err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+		if err := cli.ExposeDeploy(
+			tc.appName, tc.appName, tc.svcType, tc.appName, tc.vHosts,
+			tc.reserveStaticIp, ioutil.Discard,
+		); err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+
+		ingIface, err := cli.fake.ExtensionsV1beta1().
+			Ingresses(tc.appName).Get(tc.appName, metav1.GetOptions{})
+		if err != nil {
+			if cli.IsNotFound(err) && tc.expectedIngress {
+				t.Fatal("got unexpected error:", err)
+			}
+		}
+		if ingIface == nil && tc.svcType == "NodePort" && len(tc.vHosts) > 0 {
+			t.Errorf("got %v; want ingress", ingIface)
+		}
+
+		if ingIface != nil && tc.svcType != "NodePort" {
+			t.Errorf("got ingress %v; want %v", ingIface, nil)
+		}
+
+		svcIface, err := cli.fake.CoreV1().
+			Services(tc.appName).Get(tc.appName, metav1.GetOptions{})
+		if err != nil {
+			t.Fatal("got unexpected error:", err)
+		}
+		if svcIface == nil {
+			t.Errorf("got nil, expected service")
+		}
+		if string(svcIface.Spec.Type) != tc.svcType {
+			t.Errorf("got svcType %v, expected %v", string(svcIface.Spec.Type), tc.svcType)
+		}
+
+		if tc.expectedIngress {
+			if err != nil {
+				t.Fatal("got unexpected error:", err)
+			}
+			if tc.reserveStaticIp {
+				if ingIface.Spec.Rules != nil {
+					t.Errorf("got %v; want %v", ingIface.Spec.Rules, nil)
+				}
+				if ingIface.Spec.Backend == nil {
+					t.Errorf("got %v; want backend", ingIface.Spec.Backend)
+				}
+			} else if len(tc.vHosts) > 0 {
+				if tc.vHosts[0] == "" {
+					t.Errorf("got %v; want %v", ingIface, nil)
+				}
+				if ingIface.Spec.Rules == nil {
+					t.Errorf("got %v; want rules", ingIface.Spec.Rules)
+				}
+				if ingIface.Spec.Backend != nil {
+					t.Errorf("got %v; want %v", ingIface.Spec.Backend, nil)
+				}
+			} else {
+				t.Errorf("got %v; want %v", ingIface, nil)
+			}
+		}
+	}
+}
+
+func TestHasIngressShouldNotDuplicate(t *testing.T) {
+	appName := "teresa"
+	cli := &Client{testing: true}
+	a := &app.App{
+		Name:            appName,
+		ReserveStaticIp: true,
+	}
+	if err := cli.CreateNamespace(a, appName); err != nil {
+		t.Fatal("got unexpected error:", err)
+	}
+	// This is not the same standard teresa uses to create an ingress
+	// Teresa does not append -ingress to the end
+	if err := cli.createIngress(
+		appName,
+		fmt.Sprintf("%s-ingress", appName),
+		[]string{}, false,
+	); err != nil {
+		t.Fatal("got unexpected error:", err)
+	}
+	hasIngress, err := cli.HasIngress(appName, appName)
+	if err != nil {
+		t.Fatal("got unexpected error:", err)
+	}
+	if hasIngress != true {
+		t.Fatal("expected hasIngress to be true, got false")
 	}
 }

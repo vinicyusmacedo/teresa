@@ -48,7 +48,9 @@ type Client struct {
 
 func (k *Client) buildClient() (kubernetes.Interface, error) {
 	if k.testing {
-		k.fake = fake.NewSimpleClientset()
+		if k.fake == nil {
+			k.fake = fake.NewSimpleClientset()
+		}
 		return k.fake, nil
 	}
 	c, err := kubernetes.NewForConfig(k.conf)
@@ -610,9 +612,9 @@ func (k *Client) HasIngress(namespace, appName string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, err = kc.ExtensionsV1beta1().
+	ingList, err := kc.ExtensionsV1beta1().
 		Ingresses(namespace).
-		Get(appName, metav1.GetOptions{})
+		List(metav1.ListOptions{})
 
 	if err != nil {
 		if k.IsNotFound(err) {
@@ -620,7 +622,10 @@ func (k *Client) HasIngress(namespace, appName string) (bool, error) {
 		}
 		return false, errors.Wrap(err, "get ingress failed")
 	}
-	return true, nil
+	if len(ingList.Items) > 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (k *Client) createIngress(namespace, appName string, vHosts []string, reserveStaticIp bool, ingressClass string) error {
@@ -719,7 +724,7 @@ func (k *Client) ExposeDeploy(namespace, appName, svcType, portName string, vHos
 	if err != nil {
 		return err
 	}
-	if !hasIgs {
+	if !hasIgs && svcType == "NodePort" && len(vHosts) > 0 {
 		fmt.Fprintln(w, "Creating ingress")
 		if err := k.createIngress(namespace, appName, vHosts, reserveStaticIp, ingressClass); err != nil {
 			return err

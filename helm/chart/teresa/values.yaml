@@ -13,6 +13,7 @@ tls:
   key:
 storage:
   type: s3
+ # type: gcs
 aws:
   s3:
     bucket:
@@ -22,6 +23,9 @@ aws:
   key:
     access:
     secret:
+gcs:
+  key_file:
+  existingSecret:
 docker:
   registry: luizalabs
   image: teresa

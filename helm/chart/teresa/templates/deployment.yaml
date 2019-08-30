@@ -125,6 +125,13 @@ spec:
               {{- end }}
         - name: TERESA_STORAGE_AWS_REGION
           value: {{ .Values.aws.region }}
+        {{- if eq .Values.storage.type "gcs" }}
+        - name: TERESA_STORAGE_GCS_KEY_FILE
+          valueFrom:
+            secretKeyRef:
+              name: {{ if .Values.gcs.existingSecret }}{{ .Values.gcs.existingSecret }}{{ else }}{{ template "fullname" . }}-gcs{{ end }}
+              key: key_file
+        {{- end }}
         {{- if .Values.tls.crt }}
         - name: TERESA_SECRETS_TLS_CERT
           value: /etc/teresa/server.crt

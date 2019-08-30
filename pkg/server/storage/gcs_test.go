@@ -99,18 +99,6 @@ func TestGCSUploadFile(t *testing.T) {
 	if err := gcs.UploadFile("/test", &fakeReadSeeker{}); err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
-
-	/*
-		fd, err := os.Open("storage.go")
-		if err != nil {
-			t.Errorf("error opening file %v", err)
-		}
-		if err := gcs.UploadFile("testupload/testfile", fd); err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}
-		if err := gcs.UploadFile("testupload/testdelete", fd); err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}*/
 }
 
 func TestGCSDelete(t *testing.T) {
@@ -124,18 +112,6 @@ func TestGCSDelete(t *testing.T) {
 	if err := gcs.Delete("/test"); err != nil {
 		t.Errorf("expected no error, got %s", err)
 	}
-
-	/*
-		if err := gcs.Delete("testupload/testdelete"); err != nil {
-			t.Errorf("expected no error, got %s", err)
-		}
-		objects, err := gcs.List("testupload/testfile")
-		if err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}
-		if len(objects) != 1 {
-			t.Errorf("expected 1 object, got %v", objects)
-		}*/
 }
 
 func TestGCSPodEnvVars(t *testing.T) {
@@ -159,12 +135,4 @@ func TestGCSList(t *testing.T) {
 	if _, err := gcs.List("some/path"); err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
-
-	/*objects, err := gcs.List("testupload/")
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if len(objects) != 1 {
-		t.Errorf("expected 2 object, got %d", len(objects))
-	}*/
 }

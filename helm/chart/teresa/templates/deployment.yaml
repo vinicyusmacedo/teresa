@@ -81,6 +81,24 @@ spec:
         {{- else }}
           value: {{ .Values.storage.type }}
         {{- end }}
+        - name: TERESA_STORAGE_AWS_BUCKET
+        {{- if .Values.useMinio }}
+          value: {{ .Values.minio.defaultBucket.name }}
+        {{- else }}
+          value: {{ .Values.aws.s3.bucket }}
+        {{- end }}
+        {{- if eq .Values.storage.type "gcs" }}
+        - name: TERESA_STORAGE_GCS_KEY_FILE
+          valueFrom:
+            secretKeyRef:
+            {{- if .Values.gcs.existingSecret }}
+              name: {{ .Values.gcs.existingSecret.name }}
+              key: {{ .Values.gcs.existingSecret.key }}
+            {{- else }}
+              name: {{ template "fullname" . }}-gcs
+              key: key_file
+            {{- end }}
+        {{- else if eq .Values.storage.type "s3" }}
         {{- if .Values.useMinio }}
         - name: TERESA_STORAGE_AWS_ENDPOINT
           value: {{ .Release.Name }}-minio.{{ .Release.Namespace }}:9000
@@ -97,12 +115,6 @@ spec:
         - name: TERESA_STORAGE_AWS_S3_FORCE_PATH_STYLE
           value: {{ quote .Values.aws.s3.force_path_style }}
         {{- end }}
-        - name: TERESA_STORAGE_AWS_BUCKET
-          {{- if .Values.useMinio }}
-          value: {{ .Values.minio.defaultBucket.name }}
-          {{- else }}
-          value: {{ .Values.aws.s3.bucket }}
-          {{- end }}
         - name: TERESA_STORAGE_AWS_KEY
           valueFrom:
             secretKeyRef:
@@ -125,17 +137,6 @@ spec:
               {{- end }}
         - name: TERESA_STORAGE_AWS_REGION
           value: {{ .Values.aws.region }}
-        {{- if eq .Values.storage.type "gcs" }}
-        - name: TERESA_STORAGE_GCS_KEY_FILE
-          valueFrom:
-            secretKeyRef:
-            {{- if .Values.gcs.existingSecret }}
-              name: {{ .Values.gcs.existingSecret.name }}
-              key: {{ .Values.gcs.existingSecret.key }}
-            {{- else }}
-              name: {{ template "fullname" . }}-gcs
-              key: key_file
-            {{- end }}
         {{- end }}
         {{- if .Values.tls.crt }}
         - name: TERESA_SECRETS_TLS_CERT

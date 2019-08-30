@@ -615,6 +615,12 @@
 			"revisionTime": "2013-09-23T14:52:12Z"
 		},
 		{
+			"checksumSHA1": "gJhH+omMWbIY9VCALmvWvU2YYzI=",
+			"path": "gocloud.dev/blob",
+			"revision": "31e061dd5727ffc5064e16da45f7779b806ff82d",
+			"revisionTime": "2019-08-22T20:56:17Z"
+		},
+		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
 			"path": "golang.org/x/crypto/bcrypt",
 			"revision": "459e26527287adbc2adcc5d0d49abff9a5f315a7",

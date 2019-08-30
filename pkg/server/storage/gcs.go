@@ -50,10 +50,12 @@ func (g *GCS) UploadFile(path string, file io.ReadSeeker) error {
 	if err != nil {
 		return err
 	}
-	defer w.Close()
-	_, err = io.Copy(w, file)
-	if err != nil {
-		return err
+	if w != nil {
+		defer w.Close()
+		_, err = io.Copy(w, file)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -71,6 +73,9 @@ func (g *GCS) List(path string) ([]*Object, error) {
 	iter, err := g.listBucket(ctx, path)
 	if err != nil {
 		return nil, err
+	}
+	if iter == nil {
+		return nil, nil
 	}
 	out := []*Object{}
 	m := make(map[string]bool)
@@ -97,6 +102,9 @@ func (g *GCS) Delete(path string) error {
 	iter, err := g.listBucket(ctx, path)
 	if err != nil {
 		return err
+	}
+	if iter == nil {
+		return nil
 	}
 	for {
 		obj, err := iter.Next(ctx)

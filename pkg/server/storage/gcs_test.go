@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"testing"
 
@@ -15,6 +14,16 @@ func (f *fakeBlob) OpenBucket(context.Context, string) (*blob.Bucket, error) {
 	return nil, nil
 }
 
+type fakeWriteCloser struct{}
+
+func (f *fakeWriteCloser) Write([]byte) (int, error) {
+	return 0, nil
+}
+
+func (f *fakeWriteCloser) Close() error {
+	return nil
+}
+
 type fakeGCSClient struct{}
 
 func (f *fakeGCSClient) NewWriter(context.Context, string, *blob.WriterOptions) (*blob.Writer, error) {
@@ -22,7 +31,7 @@ func (f *fakeGCSClient) NewWriter(context.Context, string, *blob.WriterOptions) 
 }
 
 func (f *fakeGCSClient) List(*blob.ListOptions) *blob.ListIterator {
-	return &blob.ListIterator{}
+	return nil
 }
 
 func (f *fakeGCSClient) Delete(context.Context, string) error {
@@ -80,30 +89,28 @@ func TestGCSAccessData(t *testing.T) {
 }
 
 func TestGCSUploadFile(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket:  "teresa-minio-minikube",
-		openBucket: true,
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
-	//gcs.Client = &fakeGCSClient{}
+	gcs.client = &fakeGCSClient{}
+	gcs.blob = &fakeBlob{}
 
-	/*if err := gcs.UploadFile("/test", &fakeReadSeeker{}); err != nil {
+	if err := gcs.UploadFile("/test", &fakeReadSeeker{}); err != nil {
 		t.Errorf("expected no error, got %v", err)
-	}*/
+	}
 
-	// unmocked code below
-	fd, err := os.Open("storage.go")
-	if err != nil {
-		t.Errorf("error opening file %v", err)
-	}
-	if err := gcs.UploadFile("testupload/testfile", fd); err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if err := gcs.UploadFile("testupload/testdelete", fd); err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
+	/*
+		fd, err := os.Open("storage.go")
+		if err != nil {
+			t.Errorf("error opening file %v", err)
+		}
+		if err := gcs.UploadFile("testupload/testfile", fd); err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if err := gcs.UploadFile("testupload/testdelete", fd); err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}*/
 }
 
 func TestGCSDelete(t *testing.T) {
@@ -143,23 +150,21 @@ func TestGCSPodEnvVars(t *testing.T) {
 }
 
 func TestGCSList(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket:  "teresa-minio-minikube",
-		openBucket: true,
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
-	//gcs.Client = &fakeGCSClient{}
-	/*if _, err := gcs.List("some/path"); err != nil {
+	gcs.client = &fakeGCSClient{}
+	gcs.blob = &fakeBlob{}
+	if _, err := gcs.List("some/path"); err != nil {
 		t.Errorf("expected no error, got %v", err)
-	}*/
+	}
 
-	objects, err := gcs.List("testupload/")
+	/*objects, err := gcs.List("testupload/")
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
 	if len(objects) != 1 {
 		t.Errorf("expected 2 object, got %d", len(objects))
-	}
+	}*/
 }

@@ -14,6 +14,12 @@ type Blob interface {
 	OpenBucket(context.Context, string) (*blob.Bucket, error)
 }
 
+type BlobHandler struct{}
+
+func (b *BlobHandler) OpenBucket(ctx context.Context, urlstr string) (*blob.Bucket, error) {
+	return blob.OpenBucket(ctx, urlstr)
+}
+
 type GCSClient interface {
 	NewWriter(context.Context, string, *blob.WriterOptions) (*blob.Writer, error)
 	List(*blob.ListOptions) *blob.ListIterator
@@ -21,7 +27,8 @@ type GCSClient interface {
 }
 
 type GCS struct {
-	Client     GCSClient
+	client     GCSClient
+	blob       Blob
 	Bucket     string
 	GCSKeyFile string
 }
@@ -39,7 +46,7 @@ func (g *GCS) AccessData() map[string][]byte {
 
 func (g *GCS) UploadFile(path string, file io.ReadSeeker) error {
 	ctx := context.Background()
-	w, err := g.Client.NewWriter(ctx, path, nil)
+	w, err := g.client.NewWriter(ctx, path, nil)
 	if err != nil {
 		return err
 	}
@@ -99,7 +106,7 @@ func (g *GCS) Delete(path string) error {
 		if err != nil {
 			return err
 		}
-		g.Client.Delete(ctx, obj.Key)
+		g.client.Delete(ctx, obj.Key)
 	}
 	return nil
 }
@@ -108,19 +115,22 @@ func (g *GCS) listBucket(ctx context.Context, path string) (*blob.ListIterator, 
 	lo := &blob.ListOptions{
 		Prefix: path,
 	}
-	return g.Client.List(lo), nil
+	return g.client.List(lo), nil
 }
 
 func newGCS(conf *Config) (*GCS, error) {
 	gt := &GCS{
 		Bucket:     conf.AwsBucket,
 		GCSKeyFile: conf.GCSKeyFile,
+		blob:       &BlobHandler{},
 	}
-	ctx := context.Background()
-	bucket, err := blob.OpenBucket(ctx, fmt.Sprintf("gs://%s", gt.Bucket))
-	if err != nil {
-		return nil, err
+	if conf.openBucket {
+		ctx := context.Background()
+		client, err := gt.blob.OpenBucket(ctx, fmt.Sprintf("gs://%s", gt.Bucket))
+		if err != nil {
+			return nil, err
+		}
+		gt.client = client
 	}
-	gt.Client = bucket
 	return gt, nil
 }

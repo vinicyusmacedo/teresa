@@ -24,6 +24,8 @@ type Config struct {
 	AwsDisableSSL       bool        `envconfig:"aws_disable_ssl" default:"false"`
 	AwsS3ForcePathStyle bool        `envconfig:"aws_s3_force_path_style" default:"false"`
 	GCSKeyFile          string      `envconfig:"gcs_key_file" default:""`
+	// This is only used for mocking
+	openBucket bool
 }
 
 type Object struct {

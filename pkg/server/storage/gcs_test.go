@@ -7,9 +7,7 @@ import (
 )
 
 func TestGCSK8sSecretName(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
@@ -20,9 +18,7 @@ func TestGCSK8sSecretName(t *testing.T) {
 }
 
 func TestGCSType(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
@@ -62,7 +58,8 @@ func TestGCSAccessData(t *testing.T) {
 
 func TestGCSUploadFile(t *testing.T) {
 	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
+		AwsBucket:  "teresa-minio-minikube",
+		openBucket: true,
 	})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
@@ -88,7 +85,8 @@ func TestGCSUploadFile(t *testing.T) {
 
 func TestGCSDelete(t *testing.T) {
 	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
+		AwsBucket:  "teresa-minio-minikube",
+		openBucket: true,
 	})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
@@ -113,9 +111,7 @@ func TestGCSDelete(t *testing.T) {
 }
 
 func TestGCSPodEnvVars(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
@@ -127,7 +123,8 @@ func TestGCSPodEnvVars(t *testing.T) {
 
 func TestGCSList(t *testing.T) {
 	gcs, err := newGCS(&Config{
-		AwsBucket: "teresa-minio-minikube",
+		AwsBucket:  "teresa-minio-minikube",
+		openBucket: true,
 	})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)

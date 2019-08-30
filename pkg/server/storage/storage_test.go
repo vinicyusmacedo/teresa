@@ -10,6 +10,7 @@ func TestNewStorage(t *testing.T) {
 		expectedError error
 	}{
 		{"s3", nil},
+		{"gcs", nil},
 		{"InvalidType", ErrInvalidStorageType},
 	}
 

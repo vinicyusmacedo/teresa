@@ -11,6 +11,7 @@ const (
 	S3Type    storageType = "s3"
 	MinioType storageType = "minio"
 	FakeType  storageType = "fake"
+	GCSType   storageType = "gcs"
 )
 
 type Config struct {
@@ -22,6 +23,7 @@ type Config struct {
 	AwsEndpoint         string      `envconfig:"aws_endpoint" default:""`
 	AwsDisableSSL       bool        `envconfig:"aws_disable_ssl" default:"false"`
 	AwsS3ForcePathStyle bool        `envconfig:"aws_s3_force_path_style" default:"false"`
+	GCSKeyFile          string      `envconfig:"gcs_key_file" default:""`
 }
 
 type Object struct {
@@ -45,6 +47,8 @@ func New(conf *Config) (Storage, error) {
 		return newS3(conf), nil
 	case MinioType:
 		return newMinio(conf), nil
+	case GCSType:
+		return newGCS(conf), nil
 	default:
 		return nil, ErrInvalidStorageType
 	}

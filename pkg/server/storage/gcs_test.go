@@ -7,7 +7,12 @@ import (
 )
 
 func TestGCSK8sSecretName(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 
 	if name := gcs.K8sSecretName(); name != "s3-storage" {
 		t.Errorf("expected s3-storage, got %s", name)
@@ -15,7 +20,12 @@ func TestGCSK8sSecretName(t *testing.T) {
 }
 
 func TestGCSType(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 
 	if tmp := gcs.Type(); tmp != "gcs" {
 		t.Errorf("expected gcs, got %s", tmp)
@@ -27,7 +37,10 @@ func TestGCSAccessData(t *testing.T) {
 		AwsBucket:  "bucket",
 		GCSKeyFile: "credentialsjsoncontent",
 	}
-	gcs := newGCS(conf)
+	gcs, err := newGCS(conf)
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 	ad := gcs.AccessData()
 	var testCases = []struct {
 		key   string
@@ -48,7 +61,12 @@ func TestGCSAccessData(t *testing.T) {
 }
 
 func TestGCSUploadFile(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 	//gcs.Client = &fakeGCSClient{}
 
 	/*if err := gcs.UploadFile("/test", &fakeReadSeeker{}); err != nil {
@@ -56,7 +74,6 @@ func TestGCSUploadFile(t *testing.T) {
 	}*/
 
 	// unmocked code below
-	gcs.Bucket = "teresa-minio-minikube"
 	fd, err := os.Open("storage.go")
 	if err != nil {
 		t.Errorf("error opening file %v", err)
@@ -70,7 +87,12 @@ func TestGCSUploadFile(t *testing.T) {
 }
 
 func TestGCSDelete(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 	//gcs.Client = &fakeGCSClient{}
 
 	/*if err := gcs.Delete("/test"); err != nil {
@@ -78,7 +100,6 @@ func TestGCSDelete(t *testing.T) {
 	}*/
 
 	// unmocked code below
-	gcs.Bucket = "teresa-minio-minikube"
 	if err := gcs.Delete("testupload/testdelete"); err != nil {
 		t.Errorf("expected no error, got %s", err)
 	}
@@ -92,7 +113,12 @@ func TestGCSDelete(t *testing.T) {
 }
 
 func TestGCSPodEnvVars(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 	ev := gcs.PodEnvVars()
 	if len(ev) != 0 {
 		t.Errorf("expected 0, got %d", len(ev))
@@ -100,19 +126,22 @@ func TestGCSPodEnvVars(t *testing.T) {
 }
 
 func TestGCSList(t *testing.T) {
-	gcs := newGCS(&Config{})
+	gcs, err := newGCS(&Config{
+		AwsBucket: "teresa-minio-minikube",
+	})
+	if err != nil {
+		t.Errorf("error creating new gcs, %v", err)
+	}
 	//gcs.Client = &fakeGCSClient{}
 	/*if _, err := gcs.List("some/path"); err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}*/
 
-	// unmocked code below
-	gcs.Bucket = "teresa-minio-minikube"
 	objects, err := gcs.List("testupload/")
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 	}
-	if len(objects) != 2 {
+	if len(objects) != 1 {
 		t.Errorf("expected 2 object, got %d", len(objects))
 	}
 }

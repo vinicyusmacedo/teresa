@@ -48,7 +48,7 @@ func New(conf *Config) (Storage, error) {
 	case MinioType:
 		return newMinio(conf), nil
 	case GCSType:
-		return newGCS(conf), nil
+		return newGCS(conf)
 	default:
 		return nil, ErrInvalidStorageType
 	}

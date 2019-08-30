@@ -10,6 +10,10 @@ import (
 	_ "gocloud.dev/blob/gcsblob"
 )
 
+type Blob interface {
+	OpenBucket(context.Context, string) (*blob.Bucket, error)
+}
+
 type GCSClient interface {
 	NewWriter(context.Context, string, *blob.WriterOptions) (*blob.Writer, error)
 	List(*blob.ListOptions) *blob.ListIterator
@@ -17,6 +21,7 @@ type GCSClient interface {
 }
 
 type GCS struct {
+	Client     GCSClient
 	Bucket     string
 	GCSKeyFile string
 }
@@ -34,11 +39,7 @@ func (g *GCS) AccessData() map[string][]byte {
 
 func (g *GCS) UploadFile(path string, file io.ReadSeeker) error {
 	ctx := context.Background()
-	bucket, err := g.openBucket(ctx)
-	if err != nil {
-		return err
-	}
-	w, err := bucket.NewWriter(ctx, path, nil)
+	w, err := g.Client.NewWriter(ctx, path, nil)
 	if err != nil {
 		return err
 	}
@@ -86,10 +87,6 @@ func (g *GCS) List(path string) ([]*Object, error) {
 
 func (g *GCS) Delete(path string) error {
 	ctx := context.Background()
-	bucket, err := g.openBucket(ctx)
-	if err != nil {
-		return err
-	}
 	iter, err := g.listBucket(ctx, path)
 	if err != nil {
 		return err
@@ -102,30 +99,28 @@ func (g *GCS) Delete(path string) error {
 		if err != nil {
 			return err
 		}
-		bucket.Delete(ctx, obj.Key)
+		g.Client.Delete(ctx, obj.Key)
 	}
 	return nil
 }
 
-func (g *GCS) openBucket(ctx context.Context) (*blob.Bucket, error) {
-	return blob.OpenBucket(ctx, fmt.Sprintf("gs://%s", g.Bucket))
-}
-
 func (g *GCS) listBucket(ctx context.Context, path string) (*blob.ListIterator, error) {
-	bucket, err := g.openBucket(ctx)
-	if err != nil {
-		return nil, err
-	}
 	lo := &blob.ListOptions{
 		Prefix: path,
 	}
-	return bucket.List(lo), nil
+	return g.Client.List(lo), nil
 }
 
-func newGCS(conf *Config) *GCS {
+func newGCS(conf *Config) (*GCS, error) {
 	gt := &GCS{
 		Bucket:     conf.AwsBucket,
 		GCSKeyFile: conf.GCSKeyFile,
 	}
-	return gt
+	ctx := context.Background()
+	bucket, err := blob.OpenBucket(ctx, fmt.Sprintf("gs://%s", gt.Bucket))
+	if err != nil {
+		return nil, err
+	}
+	gt.Client = bucket
+	return gt, nil
 }

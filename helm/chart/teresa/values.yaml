@@ -25,7 +25,9 @@ aws:
     secret:
 gcs:
   key_file:
-  existingSecret:
+#  existingSecret:
+#    name:
+#    key:
 docker:
   registry: luizalabs
   image: teresa

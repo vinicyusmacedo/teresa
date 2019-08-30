@@ -129,8 +129,13 @@ spec:
         - name: TERESA_STORAGE_GCS_KEY_FILE
           valueFrom:
             secretKeyRef:
-              name: {{ if .Values.gcs.existingSecret }}{{ .Values.gcs.existingSecret }}{{ else }}{{ template "fullname" . }}-gcs{{ end }}
+            {{- if .Values.gcs.existingSecret }}
+              name: {{ .Values.gcs.existingSecret.name }}
+              key: {{ .Values.gcs.existingSecret.key }}
+            {{- else }}
+              name: {{ template "fullname" . }}-gcs
               key: key_file
+            {{- end }}
         {{- end }}
         {{- if .Values.tls.crt }}
         - name: TERESA_SECRETS_TLS_CERT

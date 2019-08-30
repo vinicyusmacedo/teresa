@@ -1,10 +1,33 @@
 package storage
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
+
+	"gocloud.dev/blob"
 )
+
+type fakeBlob struct{}
+
+func (f *fakeBlob) OpenBucket(context.Context, string) (*blob.Bucket, error) {
+	return nil, nil
+}
+
+type fakeGCSClient struct{}
+
+func (f *fakeGCSClient) NewWriter(context.Context, string, *blob.WriterOptions) (*blob.Writer, error) {
+	return nil, nil
+}
+
+func (f *fakeGCSClient) List(*blob.ListOptions) *blob.ListIterator {
+	return &blob.ListIterator{}
+}
+
+func (f *fakeGCSClient) Delete(context.Context, string) error {
+	return nil
+}
 
 func TestGCSK8sSecretName(t *testing.T) {
 	gcs, err := newGCS(&Config{})
@@ -84,30 +107,28 @@ func TestGCSUploadFile(t *testing.T) {
 }
 
 func TestGCSDelete(t *testing.T) {
-	gcs, err := newGCS(&Config{
-		AwsBucket:  "teresa-minio-minikube",
-		openBucket: true,
-	})
+	gcs, err := newGCS(&Config{})
 	if err != nil {
 		t.Errorf("error creating new gcs, %v", err)
 	}
-	//gcs.Client = &fakeGCSClient{}
+	gcs.client = &fakeGCSClient{}
+	gcs.blob = &fakeBlob{}
 
-	/*if err := gcs.Delete("/test"); err != nil {
-		t.Errorf("expected no error, got %s", err)
-	}*/
-
-	// unmocked code below
-	if err := gcs.Delete("testupload/testdelete"); err != nil {
+	if err := gcs.Delete("/test"); err != nil {
 		t.Errorf("expected no error, got %s", err)
 	}
-	objects, err := gcs.List("testupload/testfile")
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if len(objects) != 1 {
-		t.Errorf("expected 1 object, got %v", objects)
-	}
+
+	/*
+		if err := gcs.Delete("testupload/testdelete"); err != nil {
+			t.Errorf("expected no error, got %s", err)
+		}
+		objects, err := gcs.List("testupload/testfile")
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if len(objects) != 1 {
+			t.Errorf("expected 1 object, got %v", objects)
+		}*/
 }
 
 func TestGCSPodEnvVars(t *testing.T) {

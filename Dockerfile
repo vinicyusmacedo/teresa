@@ -1,5 +1,6 @@
-FROM golang:1.9 AS builder
+FROM golang:1.12 AS builder
 
+ENV GO111MODULE=on
 WORKDIR /go/src/github.com/luizalabs/teresa
 COPY . /go/src/github.com/luizalabs/teresa
 

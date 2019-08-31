@@ -6,7 +6,7 @@ COPY . /go/src/github.com/luizalabs/teresa
 
 RUN make build-server
 
-FROM debian:9-slim
+FROM debian:buster-slim
 RUN apt-get update && \
 apt-get install ca-certificates -y &&\
 rm -rf /var/lib/apt/lists/* &&\

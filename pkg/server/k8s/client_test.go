@@ -424,7 +424,7 @@ func TestExposeDeploy(t *testing.T) {
 		}
 		if err := cli.ExposeDeploy(
 			tc.appName, tc.appName, tc.svcType, tc.appName, tc.vHosts,
-			tc.reserveStaticIp, ioutil.Discard,
+			tc.reserveStaticIp, "nginx", ioutil.Discard,
 		); err != nil {
 			t.Fatal("got unexpected error:", err)
 		}
@@ -499,7 +499,7 @@ func TestHasIngressShouldNotDuplicate(t *testing.T) {
 	if err := cli.createIngress(
 		appName,
 		fmt.Sprintf("%s-ingress", appName),
-		[]string{}, false,
+		[]string{}, false, "nginx",
 	); err != nil {
 		t.Fatal("got unexpected error:", err)
 	}

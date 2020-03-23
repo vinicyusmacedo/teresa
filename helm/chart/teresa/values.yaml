@@ -43,7 +43,7 @@ rbac:
 apps:
   ingress: false
   service_type: LoadBalancer
-  ingress_class:
+  ingress_class: nginx
 slugstore:
   image:
 slugbuilder:

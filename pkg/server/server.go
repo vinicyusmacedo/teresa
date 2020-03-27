@@ -32,6 +32,12 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+type DisableOptions struct {
+	DisableExec   bool
+	DisableDeploy bool
+	DisableAppOps bool
+}
+
 type Options struct {
 	Port      string
 	TLSCert   *tls.Certificate
@@ -41,6 +47,7 @@ type Options struct {
 	K8s       *k8s.Client
 	DeployOpt *deploy.Options
 	Debug     bool
+	Disable   *DisableOptions
 }
 
 type Server struct {
@@ -114,8 +121,10 @@ func registerServices(s *grpc.Server, opt Options, uOps user.Operations) error {
 	t.RegisterService(s)
 
 	appOps := app.NewOperations(tOps, opt.K8s, opt.Storage)
-	a := app.NewService(appOps)
-	a.RegisterService(s)
+	if !opt.Disable.DisableAppOps {
+		a := app.NewService(appOps)
+		a.RegisterService(s)
+	}
 
 	// use appOps as teamExt to avoid circular import
 	tOps.SetTeamExt(appOps)
@@ -127,8 +136,10 @@ func registerServices(s *grpc.Server, opt Options, uOps user.Operations) error {
 		LimitsMemory: opt.DeployOpt.BuildLimitMemory,
 	}
 	execOps := exec.NewOperations(appOps, opt.K8s, opt.Storage, execDefaults)
-	e := exec.NewService(execOps, opt.DeployOpt.KeepAliveTimeout)
-	e.RegisterService(s)
+	if !opt.Disable.DisableExec {
+		e := exec.NewService(execOps, opt.DeployOpt.KeepAliveTimeout)
+		e.RegisterService(s)
+	}
 
 	buildOpts := &build.Options{
 		SlugBuilderImage: opt.DeployOpt.SlugBuilderImage,
@@ -144,9 +155,11 @@ func registerServices(s *grpc.Server, opt Options, uOps user.Operations) error {
 	cpOps := cloudprovider.NewOperations(opt.K8s)
 	log.Infoln("cloud provider operations:", cpOps.Name())
 
-	dOps := deploy.NewDeployOperations(appOps, opt.K8s, opt.Storage, execOps, bOps, cpOps, opt.DeployOpt)
-	d := deploy.NewService(dOps, opt.DeployOpt)
-	d.RegisterService(s)
+	if !opt.Disable.DisableDeploy {
+		dOps := deploy.NewDeployOperations(appOps, opt.K8s, opt.Storage, execOps, bOps, cpOps, opt.DeployOpt)
+		d := deploy.NewService(dOps, opt.DeployOpt)
+		d.RegisterService(s)
+	}
 
 	svcOps := service.NewOperations(appOps, cpOps, opt.K8s)
 	svc := service.NewService(svcOps)

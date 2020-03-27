@@ -153,6 +153,18 @@ spec:
         - name: TERESA_DEPLOY_DNSCONFIG_NDOTS
           value: {{ .Values.apps.dnsconfig_ndots }}
         {{- end }}
+        {{- if .Values.disabled_services.app }}
+        - name: TERESA_DISABLED_SERVICES_DISABLE_APP_OPS
+          value: {{ .Values.disabled_services.app }}
+        {{- end }}
+        {{- if .Values.disabled_services.deploy }}
+        - name: TERESA_DISABLED_SERVICES_DISABLE_DEPLOY
+          value: {{ .Values.disabled_services.deploy }}
+        {{- end }}
+        {{- if .Values.disabled_services.exec }}
+        - name: TERESA_DISABLED_SERVICES_DISABLE_EXEC
+          value: {{ .Values.disabled_services.exec }}
+        {{- end }}
         volumeMounts:
         {{- if .Values.tls.crt }}
         - mountPath: /etc/teresa

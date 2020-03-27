@@ -58,6 +58,11 @@ func runServer(cmd *cobra.Command, args []string) {
 		log.WithError(err).Fatal("failed to configure k8s client")
 	}
 
+	disabledServices, err := getDisabledServices()
+	if err != nil {
+		log.WithError(err).Fatal("failed to get disabled services config")
+	}
+
 	sec, err := getSecrets()
 	if err != nil {
 		log.WithError(err).Fatal("failed to get secrets data")
@@ -90,6 +95,7 @@ func runServer(cmd *cobra.Command, args []string) {
 		K8s:       kc,
 		DeployOpt: deployOpt,
 		Debug:     debug,
+		Disable:   disabledServices,
 	})
 	if err != nil {
 		log.WithError(err).Fatal("failed to create server")
@@ -141,4 +147,13 @@ func getDeployOpt() (*deploy.Options, error) {
 		return nil, err
 	}
 	return conf, nil
+}
+
+func getDisabledServices() (*server.DisableOptions, error) {
+	disabledOptions := new(server.DisableOptions)
+
+	if err := envconfig.Process("teresa_disabled_services", disabledOptions); err != nil {
+		return nil, err
+	}
+	return disabledOptions, nil
 }

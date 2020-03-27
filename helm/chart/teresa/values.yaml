@@ -48,3 +48,7 @@ slugstore:
   image:
 slugbuilder:
   image:
+disabled_services:
+  app: false
+  deploy: false
+  exec: false

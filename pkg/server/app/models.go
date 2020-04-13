@@ -30,18 +30,19 @@ type EnvVar struct {
 }
 
 type App struct {
-	Name            string     `json:"name"`
-	Team            string     `json:"-"`
-	ProcessType     string     `json:"processType"`
-	VirtualHost     string     `json:"virtualHost"`
-	Limits          *Limits    `json:"-"`
-	Autoscale       *Autoscale `json:"-"`
-	EnvVars         []*EnvVar  `json:"envVars"`
-	Internal        bool       `json:"internal"`
-	ReserveStaticIp bool       `json:"reserveStaticIp"`
-	Secrets         []string   `json:"secrets"`
-	SecretFiles     []string   `json:"secret_files"`
-	Protocol        string     `json:"protocol"`
+	Name             string            `json:"name"`
+	Team             string            `json:"-"`
+	ProcessType      string            `json:"processType"`
+	VirtualHost      string            `json:"virtualHost"`
+	Limits           *Limits           `json:"-"`
+	Autoscale        *Autoscale        `json:"-"`
+	EnvVars          []*EnvVar         `json:"envVars"`
+	Internal         bool              `json:"internal"`
+	ReserveStaticIp  bool              `json:"reserveStaticIp"`
+	Secrets          []string          `json:"secrets"`
+	SecretFiles      []string          `json:"secret_files"`
+	Protocol         string            `json:"protocol"`
+	AdditionalLabels map[string]string `json:"additionalLabels"`
 }
 
 type Pod struct {

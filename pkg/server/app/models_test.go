@@ -40,13 +40,14 @@ func newCreateRequest(processType, protocol string) *appb.CreateRequest {
 		Min:                  1,
 	}
 	return &appb.CreateRequest{
-		Name:        "name",
-		Team:        "team",
-		ProcessType: processType,
-		VirtualHost: "test.teresa-apps.io",
-		Autoscale:   as,
-		Limits:      lim,
-		Protocol:    protocol,
+		Name:             "name",
+		Team:             "team",
+		ProcessType:      processType,
+		VirtualHost:      "test.teresa-apps.io",
+		Autoscale:        as,
+		Limits:           lim,
+		Protocol:         protocol,
+		AdditionalLabels: map[string]string{"label": "test"},
 	}
 }
 
@@ -74,7 +75,8 @@ func TestNewApp(t *testing.T) {
 				{Resource: "resource4", Quantity: "4"},
 			},
 		},
-		EnvVars: []*EnvVar{},
+		EnvVars:          []*EnvVar{},
+		AdditionalLabels: map[string]string{"label": "test"},
 	}
 
 	if !reflect.DeepEqual(app, want) {

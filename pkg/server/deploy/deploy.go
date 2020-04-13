@@ -87,6 +87,11 @@ func (ops *DeployOperations) Deploy(ctx context.Context, user *database.User, ap
 	deployId := uid.New()
 	buildIn := fmt.Sprintf("deploys/%s/%s/in/app.tgz", a.Name, deployId)
 	buildDest := fmt.Sprintf("deploys/%s/%s/out", appName, deployId)
+	log.WithFields(log.Fields{
+		"id":   deployId,
+		"user": user.Email,
+		"app":  appName,
+	}).Info("Deploy started")
 
 	r, w := io.Pipe()
 	go func() {

@@ -12,15 +12,17 @@ import (
 func TestDeployBuilder(t *testing.T) {
 	expectedPodName := "test"
 	expectedNamespace := "ns"
+	expectedLabels := map[string]string{"labelExpected": "label"}
 	pod := NewRunnerPodBuilder(expectedPodName, "runner", "store").
 		ForApp(&app.App{Name: expectedNamespace}).
 		WithStorage(storage.NewFake()).
+		WithLabels(expectedLabels).
 		Build()
 
 	expectedSlugURL := "some/slug.tgz"
 	expectedDescription := "teste"
 	expectedRevisionHistoryLimit := 5
-	expectedMatchLabels := map[string]string{"expected": "label"}
+	expectedMatchLabels := map[string]string{"matchLabelExpected": "matchLabel"}
 	expectedDNSConfigNdots := "2"
 	ds := NewDeployBuilder(expectedSlugURL).
 		WithPod(pod).
@@ -48,6 +50,14 @@ func TestDeployBuilder(t *testing.T) {
 	}
 	for k, v := range expectedMatchLabels {
 		if actual := ds.MatchLabels[k]; actual != v {
+			t.Errorf("expected %s for key %s, got %s", v, k, actual)
+		}
+	}
+	for k, v := range expectedLabels {
+		if actual := ds.Labels[k]; actual != v {
+			t.Errorf("expected %s for key %s, got %s", v, k, actual)
+		}
+		if actual := ds.Pod.Labels[k]; actual != v {
 			t.Errorf("expected %s for key %s, got %s", v, k, actual)
 		}
 	}

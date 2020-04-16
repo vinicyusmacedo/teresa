@@ -159,6 +159,9 @@ func (ops *DeployOperations) createOrUpdateDeploy(a *app.App, confFiles *DeployC
 		}
 	}
 	labels := map[string]string{"run": a.Name}
+	for k, v := range a.AdditionalLabels {
+		labels[k] = v
+	}
 	podBuilder := spec.NewRunnerPodBuilder(a.Name, ops.opts.SlugRunnerImage, ops.opts.SlugStoreImage).
 		ForApp(a).
 		WithSlug(slugURL).

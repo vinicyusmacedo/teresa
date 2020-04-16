@@ -47,6 +47,9 @@ func newCreateRequest(processType, protocol string) *appb.CreateRequest {
 		Autoscale:   as,
 		Limits:      lim,
 		Protocol:    protocol,
+		AdditionalLabels: map[string]string{
+			"test": "test",
+		},
 	}
 }
 
@@ -75,6 +78,9 @@ func TestNewApp(t *testing.T) {
 			},
 		},
 		EnvVars: []*EnvVar{},
+		AdditionalLabels: map[string]string{
+			"test": "test",
+		},
 	}
 
 	if !reflect.DeepEqual(app, want) {

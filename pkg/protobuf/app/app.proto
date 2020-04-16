@@ -46,6 +46,7 @@ message CreateRequest {
     bool internal = 7;
     string protocol = 8;
     bool reserve_static_ip = 9;
+    map<string, string> additional_labels = 10;
 }
 
 message ListResponse {

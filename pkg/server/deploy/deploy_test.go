@@ -153,7 +153,11 @@ func TestDeploy(t *testing.T) {
 
 func TestCreateDeploy(t *testing.T) {
 	expectedName := "Test app"
-	a := &app.App{Name: expectedName}
+	expectedAdditionalLabels := map[string]string{
+		"testlabel":  "testlabel",
+		"testlabel2": "testlabel2",
+	}
+	a := &app.App{Name: expectedName, AdditionalLabels: expectedAdditionalLabels}
 	expectedDescription := "test-description"
 	expectedSlugURL := "test-slug"
 	opts := &Options{RevisionHistoryLimit: 3}
@@ -195,6 +199,12 @@ func TestCreateDeploy(t *testing.T) {
 	}
 	if fakeK8s.lastDeploySpec.RevisionHistoryLimit != opts.RevisionHistoryLimit {
 		t.Errorf("expected %d, got %d", opts.RevisionHistoryLimit, fakeK8s.lastDeploySpec.RevisionHistoryLimit)
+	}
+
+	for k, v := range expectedAdditionalLabels {
+		if got := fakeK8s.lastDeploySpec.Labels[k]; got != v {
+			t.Errorf("expected %s, got %s", v, got)
+		}
 	}
 }
 

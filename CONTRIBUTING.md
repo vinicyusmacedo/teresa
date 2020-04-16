@@ -42,3 +42,14 @@ Configure the client:
 
 Now you are ready to use the modified client and server with effects on your
 kubectl current context.
+
+# Updating protobufs
+
+This may help you if you're having issues compiling protobufs:
+
+```sh
+GIT_TAG="69b215d"
+go get -d -u github.com/golang/protobuf/protoc-gen-go
+git -C "$(go env GOPATH)"/src/github.com/golang/protobuf checkout $GIT_TAG
+go install github.com/golang/protobuf/protoc-gen-go
+```

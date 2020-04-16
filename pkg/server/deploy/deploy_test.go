@@ -152,58 +152,12 @@ func TestDeploy(t *testing.T) {
 }
 
 func TestCreateDeploy(t *testing.T) {
-	expectedName := "Test app"
-	a := &app.App{Name: expectedName}
-	expectedDescription := "test-description"
-	expectedSlugURL := "test-slug"
-	opts := &Options{RevisionHistoryLimit: 3}
-
-	conf := &DeployConfigFiles{Procfile: map[string]string{"worker": "echo hello world"}}
-
-	fakeK8s := new(fakeK8sOperations)
-	ops := NewDeployOperations(
-		app.NewFakeOperations(),
-		fakeK8s,
-		storage.NewFake(),
-		exec.NewFakeOperations(),
-		build.NewFakeOperations(),
-		cloudprovider.NewOperations(cloudprovider.NewFakeOperations()),
-		opts,
-	)
-
-	err := ops.(*DeployOperations).createOrUpdateDeploy(
-		a,
-		conf,
-		new(bytes.Buffer),
-		expectedSlugURL,
-		expectedDescription,
-		"123",
-	)
-
-	if err != nil {
-		t.Fatal("error create deploy:", err)
-	}
-
-	if fakeK8s.lastDeploySpec.Name != expectedName {
-		t.Errorf("expected %s, got %s", expectedName, fakeK8s.lastDeploySpec.Name)
-	}
-	if fakeK8s.lastDeploySpec.Description != expectedDescription {
-		t.Errorf("expected %s, got %s", expectedDescription, fakeK8s.lastDeploySpec.Description)
-	}
-	if fakeK8s.lastDeploySpec.SlugURL != expectedSlugURL {
-		t.Errorf("expected %s, got %s", expectedSlugURL, fakeK8s.lastDeploySpec.SlugURL)
-	}
-	if fakeK8s.lastDeploySpec.RevisionHistoryLimit != opts.RevisionHistoryLimit {
-		t.Errorf("expected %d, got %d", opts.RevisionHistoryLimit, fakeK8s.lastDeploySpec.RevisionHistoryLimit)
-	}
-}
-
-func TestDeployAdditionalLabels(t *testing.T) {
 	expectedAdditionalLabels := map[string]string{
 		"expected1": "label1",
 		"expected2": "label2",
 	}
-	a := &app.App{Name: "test", AdditionalLabels: expectedAdditionalLabels}
+	expectedName := "Test app"
+	a := &app.App{Name: expectedName, AdditionalLabels: expectedAdditionalLabels}
 	expectedDescription := "test-description"
 	expectedSlugURL := "test-slug"
 	opts := &Options{RevisionHistoryLimit: 3}
@@ -245,6 +199,14 @@ func TestDeployAdditionalLabels(t *testing.T) {
 	}
 	if fakeK8s.lastDeploySpec.RevisionHistoryLimit != opts.RevisionHistoryLimit {
 		t.Errorf("expected %d, got %d", opts.RevisionHistoryLimit, fakeK8s.lastDeploySpec.RevisionHistoryLimit)
+	}
+	for k, v := range expectedAdditionalLabels {
+		if actual := fakeK8s.lastDeploySpec.Labels[k]; actual != v {
+			t.Errorf("expected %s for key %s, got %s", v, k, actual)
+		}
+		if actual := fakeK8s.lastDeploySpec.Template.Spec.Pod.Labels[k]; actual != v {
+			t.Errorf("expected %s for key %s, got %s", v, k, actual)
+		}
 	}
 }
 

@@ -17,6 +17,7 @@ service App {
     rpc UnsetSecret(UnsetEnvRequest) returns (Empty);
     rpc ChangeTeam(ChangeTeamRequest) returns (Empty);
     rpc SetVHosts(SetVHostsRequest) returns (Empty);
+    rpc SetAdditionalLabels(SetAdditionalLabelsRequest) returns (Empty);
 }
 
 message CreateRequest {
@@ -186,6 +187,11 @@ message ChangeTeamRequest {
 message SetVHostsRequest {
    string app_name = 1;
    repeated string vhosts = 2;
+}
+
+message SetAdditionalLabelsRequest {
+    string app_name = 1;
+    map<string, string> additional_labels = 2;
 }
 
 message Empty {}

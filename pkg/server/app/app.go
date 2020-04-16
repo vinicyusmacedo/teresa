@@ -43,6 +43,7 @@ type Operations interface {
 	DeletePods(user *database.User, appName string, podsNames []string) error
 	SetVHosts(user *database.User, appName string, vHosts []string) error
 	CheckVirtualHostIsMissing(app *App) error
+	SetAdditionalLabels(user *database.User, appName string, additionalLabels map[string]string) error
 }
 
 type K8sOperations interface {
@@ -743,6 +744,24 @@ func (ops *AppOperations) CheckVirtualHostIsMissing(app *App) (Err error) {
 	if ops.kops.IngressEnabled() && app.VirtualHost == "" && !app.ReserveStaticIp && IsWebApp(app.ProcessType) {
 		return ErrMissingVirtualHost
 	}
+	return nil
+}
+
+func (ops *AppOperations) SetAdditionalLabels(user *database.User, appName string, additionalLabels map[string]string) error {
+	a, err := ops.CheckPermAndGet(user, appName)
+	if err != nil {
+		return err
+	}
+
+	if len(additionalLabels) == 0 {
+		return ErrInvalidAdditionalLabels
+	}
+
+	a.AdditionalLabels = additionalLabels
+	if err := ops.SaveApp(a, user.Email); err != nil {
+		return teresa_errors.NewInternalServerError(err)
+	}
+
 	return nil
 }
 

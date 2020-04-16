@@ -309,6 +309,21 @@ func (f *FakeOperations) CheckVirtualHostIsMissing(app *App) error {
 	return nil
 }
 
+func (f *FakeOperations) SetAdditionalLabels(user *database.User, appName string, additionalLabels map[string]string) error {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
+	if !hasPerm(user.Email) {
+		return auth.ErrPermissionDenied
+	}
+
+	if _, found := f.Storage[appName]; !found {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
 func NewFakeOperations() *FakeOperations {
 	return &FakeOperations{
 		mutex:   &sync.RWMutex{},

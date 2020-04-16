@@ -589,3 +589,51 @@ func TestSetVHostsPermissionDenied(t *testing.T) {
 		t.Errorf("got %v; want %v", err, auth.ErrPermissionDenied)
 	}
 }
+
+func TestSetAdditionalLabelsSuccess(t *testing.T) {
+	fake := NewFakeOperations()
+	name := "teresa"
+	fake.Storage[name] = &App{Name: name}
+	s := NewService(fake)
+	user := &database.User{Email: "gopher@luizalabs.com"}
+	ctx := context.WithValue(context.Background(), "user", user)
+	additionalLabels := map[string]string{
+		"test": "test",
+	}
+
+	req := &appb.SetAdditionalLabelsRequest{AppName: name, AdditionalLabels: additionalLabels}
+	if _, err := s.SetAdditionalLabels(ctx, req); err != nil {
+		t.Error("got unexpected error:", err)
+	}
+}
+
+func TestSetAdditionalLabelsAppNotFound(t *testing.T) {
+	s := NewService(NewFakeOperations())
+	user := &database.User{Email: "gopher@luizalabs.com"}
+	ctx := context.WithValue(context.Background(), "user", user)
+	additionalLabels := map[string]string{
+		"test": "test",
+	}
+
+	req := &appb.SetAdditionalLabelsRequest{AppName: "teresa", AdditionalLabels: additionalLabels}
+	if _, err := s.SetAdditionalLabels(ctx, req); err != ErrNotFound {
+		t.Errorf("got %v; want %v", err, ErrNotFound)
+	}
+}
+
+func TestSetAdditionalLabelsPermissionDenied(t *testing.T) {
+	fake := NewFakeOperations()
+	name := "teresa"
+	fake.Storage[name] = &App{Name: name}
+	s := NewService(fake)
+	user := &database.User{Email: "bad-user@luizalabs.com"}
+	ctx := context.WithValue(context.Background(), "user", user)
+	additionalLabels := map[string]string{
+		"test": "test",
+	}
+
+	req := &appb.SetAdditionalLabelsRequest{AppName: name, AdditionalLabels: additionalLabels}
+	if _, err := s.SetAdditionalLabels(ctx, req); err != auth.ErrPermissionDenied {
+		t.Errorf("got %v; want %v", err, auth.ErrPermissionDenied)
+	}
+}

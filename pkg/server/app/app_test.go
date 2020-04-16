@@ -1622,3 +1622,37 @@ func TestAppOpsSetVHostsUpdateIngressErr(t *testing.T) {
 		t.Errorf("got %v; want %v", teresa_errors.Get(err), teresa_errors.ErrInternalServerError)
 	}
 }
+
+func TestAppOpsSetAdditionalLabels(t *testing.T) {
+	tops := team.NewFakeOperations()
+	ops := NewOperations(tops, &fakeK8sOperations{}, nil)
+	user := &database.User{Email: "teresa@luizalabs.com"}
+	additionalLabels := map[string]string{
+		"test": "test",
+	}
+	app := &App{Name: "teresa", Team: "luizalabs"}
+	tops.(*team.FakeOperations).Storage[app.Team] = &database.Team{
+		Name:  app.Team,
+		Users: []database.User{*user},
+	}
+
+	if err := ops.SetAdditionalLabels(user, app.Name, additionalLabels); err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+}
+
+func TestAppOpsSetAdditionalLabelsErrInvalidAdditionalLabels(t *testing.T) {
+	tops := team.NewFakeOperations()
+	ops := NewOperations(tops, &fakeK8sOperations{}, nil)
+	user := &database.User{Email: "teresa@luizalabs.com"}
+	additionalLabels := map[string]string{}
+	app := &App{Name: "teresa", Team: "luizalabs"}
+	tops.(*team.FakeOperations).Storage[app.Team] = &database.Team{
+		Name:  app.Team,
+		Users: []database.User{*user},
+	}
+
+	if err := ops.SetAdditionalLabels(user, app.Name, additionalLabels); err != ErrInvalidAdditionalLabels {
+		t.Errorf("expected %v, got %v", ErrInvalidAdditionalLabels, err)
+	}
+}

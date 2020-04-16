@@ -17,6 +17,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 
+	"github.com/spf13/pflag"
 	"golang.org/x/net/context"
 )
 
@@ -60,8 +61,8 @@ The app name must follow this rules:
   With multiple virtual hosts
   $ teresa create foo --team bar --vhost foo1.teresa.io,foo2.teresa.io
 
-	An app with static IP (GCP only)
-	$ teresa create foo --team bar --reserve-static-ip
+  An app with static IP (GCP only)
+  $ teresa create foo --team bar --reserve-static-ip
 
   An internal app (without external endpoint)
   $ teresa create foo --team bar --internal
@@ -69,9 +70,12 @@ The app name must follow this rules:
   An app that uses the grpc protocol:
   $ teresa create foo --team bar --protocol grpc
 
+  An app with additional labels:
+  $ teresa create foo --team bar --additional-labels "foo=bar,xp=to"
+
   With all flags...
   $ teresa app create foo --team bar --cpu 200m --max-cpu 500m --memory 512Mi --max-memory 1Gi \
-    --scale-min 2 --scale-max 10 --scale-cpu 70 --process-type web --protocol http`,
+    --scale-min 2 --scale-max 10 --scale-cpu 70 --process-type web --protocol http --reserve-static-ip`,
 	Run: createApp,
 }
 
@@ -134,6 +138,10 @@ func createApp(cmd *cobra.Command, args []string) {
 	if err != nil {
 		client.PrintErrorAndExit("Invalid vhost parameter")
 	}
+
+	additionalLabels, err := cmd.Flags().Get
+
+	pflag.StringToString()
 
 	reserveStaticIp, err := cmd.Flags().GetBool("reserve-static-ip")
 	if err != nil {

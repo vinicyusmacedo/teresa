@@ -199,6 +199,14 @@ func (s *Service) SetVHosts(ctx context.Context, req *appb.SetVHostsRequest) (*a
 	return &appb.Empty{}, nil
 }
 
+func (s *Service) SetAdditionalLabels(ctx context.Context, req *appb.SetAdditionalLabelsRequest) (*appb.Empty, error) {
+	user := ctx.Value("user").(*database.User)
+	if err := s.ops.SetAdditionalLabels(user, req.AppName, req.AdditionalLabels); err != nil {
+		return nil, err
+	}
+	return &appb.Empty{}, nil
+}
+
 func (s *Service) RegisterService(grpcServer *grpc.Server) {
 	appb.RegisterAppServer(grpcServer, s)
 }

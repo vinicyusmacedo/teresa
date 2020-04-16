@@ -23,4 +23,8 @@ var (
 		codes.InvalidArgument,
 		"Blank vhosts not allowed for cluster with ingress integration",
 	)
+	ErrInvalidAdditionalLabels = status.Errorf(
+		codes.InvalidArgument,
+		"Invalid Additional Labels",
+	)
 )
